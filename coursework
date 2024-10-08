@@ -1,1 +1,40 @@
+grid = [0 for n in range(81)]  #main game grid
+#each array is a box
 
+
+def ValidRow1(board):
+
+    x=0
+    while x<9:
+        #temporary array to check for duplicates
+        temp = [0 for n in range(9)]
+        #check if cell is empty
+        if board[x] != 0:
+            #copy board inputs to temp array
+            temp[x] = board[x]
+            #iterate through the temp array and check if there are any duplicates
+            for n in range[9]:
+                y=8
+                while y>n:
+                    if temp[n] == temp[y]:
+                        return False
+    
+    return True
+
+def ValidRow(board):
+    temp = [0 for n in range(9)]
+
+    for i in board:
+        if temp[i-1] == 0:
+            temp[i-1] = 1
+        else:
+            return False
+    return True
+    
+
+
+
+
+
+
+def ValidCol(board):
