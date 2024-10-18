@@ -10,7 +10,7 @@ test_G = [0,2,0,0,3,0,1,0,0,
           0,0,0,0,0,0,0,0,0,
           0,0,0,0,0,0,0,0,0,]
 
-def ValidRow1(board):
+def ValidRow(board):
     row = 0
     #iterating over every row
     while row < 8:
@@ -19,12 +19,15 @@ def ValidRow1(board):
         temp = [0 for n in range(9)]
 
         x=0
+        #looping over each row seperatly by scaling the position by 9
         while x+(9*row)<9+(9*row):
             #check if cell is empty
             if board[x+(9*row)] != 0:
+                #if the position of the number in temp == 1 then the number has already been seen
                 if temp[(board[x+(9*row)])-1] == 1:
                     return False
-                else:         
+                else:
+                    #if not change it from 0 to 1  
                     temp[(board[x+(9*row)])-1] = 1
                     print(temp)
             x+=1
@@ -32,8 +35,43 @@ def ValidRow1(board):
     return True
 
 
+def ValidColumn(board):
+    for col in range(9):
+        # Temporary array to check for duplicates
+        temp = [0 for _ in range(9)]
+        
+        for row in range(9):
+            # Calculate the index in the 1D board array
+            index = row * 9 + col
+            
+            # Check if cell is empty
+            if board[index] != 0:
+                # If the position of the number in temp == 1 then the number has already been seen
+                if temp[board[index] - 1] == 1:
+                    return False
+                else:
+                    # If not, mark it as seen
+                    temp[board[index] - 1] = 1
+    return True
 
-
-
-
-def ValidCol(board):
+def ValidBox(board):
+    for box_row in range(3):
+        for box_col in range(3):
+            # Temporary array to check for duplicates
+            temp = [0 for _ in range(9)]
+            
+            for row in range(3):
+                for col in range(3):
+                    # Calculate the index in the 1D board array
+                    index = (box_row * 3 + row) * 9 + (box_col * 3 + col)
+                    
+                    # Check if cell is empty
+                    if board[index] != 0:
+                        # If the position of the number in temp == 1 then the number has already been seen
+                        if temp[board[index] - 1] == 1:
+                            return False
+                        else:
+                            # If not, mark it as seen
+                            temp[board[index] - 1] = 1
+    
+    return True
