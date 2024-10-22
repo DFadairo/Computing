@@ -1,37 +1,37 @@
-grid = [0 for n in range(81)]  #main game grid
-#each array is a box
-test_G = [0,2,0,0,3,0,1,0,0,
-          0,0,4,0,0,0,3,0,0,
-          0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,3,0,
-          0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,4,0,0,
-          0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,0,0,]
+grid = [0 for n in range(81)]  # main game grid
+# each array is a box
+test_G = [6, 7, 2, 0, 0, 0, 0, 0, 9,
+          1, 0, 5, 8, 4, 0, 0, 0, 7,
+          0, 8, 0, 0, 2, 7, 0, 0, 7,
+          0, 0, 0, 3, 7, 2, 4, 9, 0,
+          3, 9, 6, 0, 0, 0, 0, 0, 0,
+          7, 0, 0, 0, 0, 8, 0, 1, 5,
+          8, 5, 7, 0, 1, 0, 0, 0, 0,
+          0, 0, 0, 0, 9, 5, 6, 8, 0,
+          0, 0, 1, 4, 0, 3, 5, 0, 0, ]
+
 
 def ValidRow(board):
     row = 0
-    #iterating over every row
+    # iterating over every row
     while row < 8:
-            
-        #temporary array to check for duplicates
-        temp = [0 for n in range(9)]
 
-        x=0
-        #looping over each row seperatly by scaling the position by 9
-        while x+(9*row)<9+(9*row):
-            #check if cell is empty
-            if board[x+(9*row)] != 0:
-                #if the position of the number in temp == 1 then the number has already been seen
-                if temp[(board[x+(9*row)])-1] == 1:
+        # temporary array to check for duplicates
+        temp = [0 for _ in range(9)]
+
+        x = 0
+        # looping over each row seperatly by scaling the position by 9
+        while x + (9 * row) < 9 + (9 * row):
+            # check if cell is empty
+            if board[x + (9 * row)] != 0:
+                # if the position of the number in temp == 1 then the number has already been seen
+                if temp[(board[x + (9 * row)]) - 1] == 1:
                     return False
                 else:
-                    #if not change it from 0 to 1  
-                    temp[(board[x+(9*row)])-1] = 1
-                    print(temp)
-            x+=1
-        row+=1
+                    # if not change it from 0 to 1
+                    temp[(board[x + (9 * row)]) - 1] = 1
+            x += 1
+        row += 1
     return True
 
 
@@ -39,11 +39,11 @@ def ValidColumn(board):
     for col in range(9):
         # Temporary array to check for duplicates
         temp = [0 for _ in range(9)]
-        
+
         for row in range(9):
             # Calculate the index in the 1D board array
             index = row * 9 + col
-            
+
             # Check if cell is empty
             if board[index] != 0:
                 # If the position of the number in temp == 1 then the number has already been seen
@@ -54,17 +54,18 @@ def ValidColumn(board):
                     temp[board[index] - 1] = 1
     return True
 
+
 def ValidBox(board):
     for box_row in range(3):
         for box_col in range(3):
             # Temporary array to check for duplicates
             temp = [0 for _ in range(9)]
-            
+
             for row in range(3):
                 for col in range(3):
                     # Calculate the index in the 1D board array
                     index = (box_row * 3 + row) * 9 + (box_col * 3 + col)
-                    
+
                     # Check if cell is empty
                     if board[index] != 0:
                         # If the position of the number in temp == 1 then the number has already been seen
@@ -73,5 +74,43 @@ def ValidBox(board):
                         else:
                             # If not, mark it as seen
                             temp[board[index] - 1] = 1
-    
+
     return True
+
+
+def backtracking(board,pos):
+    pos = 0
+    a=0
+    #looping over board
+    for row in range(9):
+        while a+(9 * row)< 9+(9 * row):
+            #values that can be inputted into the grid
+            values = [1,2,3,4,5,6,7,8,9]
+            for i in range(len(values)):
+                for item in values:
+                    #checking if each value is already in the board
+                    if board[a+(9 * row)] == item:
+                        #remmoving it from the list if it is already present
+                        values.remove(item)
+
+            x=0
+            while x<9:
+                if board[a+(9 * row)] != 0 and x != 8:
+                    x+=1
+                if board[a+(9 * row)] == 0:
+                    board[a+(9 * row)] = values[pos]
+                    values.remove(values[pos])
+                x+=1
+            a+=1
+
+        if ValidBox(board) or ValidRow(board) or ValidColumn(board):
+            print("done")
+        else:
+            backtracking(board, (pos + 1))
+
+
+
+backtracking(test_G,0)
+            if board[a] != 0 and x != 8:
+                x+=1
+            if board[]
