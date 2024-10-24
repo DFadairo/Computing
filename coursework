@@ -40,9 +40,9 @@ def ValidColumn(board):
         # Temporary array to check for duplicates
         temp = [0 for _ in range(9)]
 
-        for row in range(9):
-            # Calculate the index in the 1D board array
             index = row * 9 + col
+            for row in range(9):
+            # Calculate the index in the 1D board array
 
             # Check if cell is empty
             if board[index] != 0:
@@ -78,39 +78,41 @@ def ValidBox(board):
     return True
 
 
-def backtracking(board,pos):
-    pos = 0
-    a=0
-    #looping over board
-    for row in range(9):
-        while a+(9 * row)< 9+(9 * row):
-            #values that can be inputted into the grid
-            values = [1,2,3,4,5,6,7,8,9]
-            for i in range(len(values)):
-                for item in values:
-                    #checking if each value is already in the board
-                    if board[a+(9 * row)] == item:
-                        #remmoving it from the list if it is already present
-                        values.remove(item)
+def backtracking(board):
+    empty = find_empty(board)
 
-            x=0
-            while x<9:
-                if board[a+(9 * row)] != 0 and x != 8:
-                    x+=1
-                if board[a+(9 * row)] == 0:
-                    board[a+(9 * row)] = values[pos]
-                    values.remove(values[pos])
-                x+=1
-            a+=1
+    if empty == False:
+        return True
 
+    for n in range(1,10):
         if ValidBox(board) or ValidRow(board) or ValidColumn(board):
-            print("done")
-        else:
-            backtracking(board, (pos + 1))
+            board[empty] = num
+
+        if solve(board):
+            return True
+
+        board[empty] = 0
+
+    return False
 
 
 
-backtracking(test_G,0)
-            if board[a] != 0 and x != 8:
-                x+=1
-            if board[]
+def find_empty(board):
+    # find an empty cell in the board
+    for i in range(len(board)):
+        if board[i] == 0:
+            return i
+    return False
+
+def print_board(board):
+    """Print the Sudoku board in a readable format"""
+    for i in range(9):
+        if i % 3 == 0 and i != 0:
+            print("- - - - - - - - - - - -")
+        for j in range(9):
+            if j % 3 == 0 and j != 0:
+                print("|", end=" ")
+            if j == 8:
+                print(board[i * 9 + j])
+            else:
+                print(str(board[i * 9 + j]) + " ", end="")
