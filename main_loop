@@ -11,10 +11,11 @@ def validate_input(P):
 
 class Grid:
     def __init__(self,board):
+        self.board = board
         self.window = tk.Tk()
         self.window.title("David's Sudoku")
-        self.window.geometry("500x400")
-        self.board = board
+        self.window.geometry("1000x900")
+        self.entries = {}
 
     def display_grid(self):
         my_canvas = tk.Canvas(self.window, width=1000, height=1000, bg="white")
@@ -36,22 +37,89 @@ class Grid:
             my_canvas.create_line(50, y, 950, y, fill="black", width = 7)
             y+=300
 
-        entries = {}
+        self.entries = {}
         validate_cmd = self.window.register(validate_input)
 
         for row in range(9):
-            entries[row] = {}
+            self.entries[row] = {}
             for col in range(9):
-                entry = tk.Entry(self.window, font=("Arial Rounded MT Bold", 80), justify="center", validate="key", validatecommand=(validate_cmd, '%P'))
+                entry = tk.Entry(self.window, font=("Arial Rounded MT Bold", 50), justify="center", validate="key", validatecommand=(validate_cmd, '%P'))
 
                 x_pos = 55+(col*100)
                 y_pos = 55+(row*100)
                 
                 entry.place(x=x_pos,y=y_pos, width=90,height=90)
-                entry.insert(0,self.board[row][col])
-                entries[row][col] = entry
+                if self.board[row][col] in range(1,10):
+                    entry.insert(0,self.board[row][col])
+                self.entries[row][col] = entry
 
+    def navigate_grid(self, event):
+        # Get the currently focused entry
+        current_entry = self.window.focus_get()
+
+        # Find its position in the grid
+        for row in range(9):
+            for col in range(9):
+                if self.entries[row][col] == current_entry:
+                    # Determine new position based on key pressed
+                    if event.keysym == "Up" and row > 0:
+                        self.entries[row - 1][col].focus_set()  # Move up
+                    elif event.keysym == "Down" and row < 8:
+                        self.entries[row + 1][col].focus_set()  # Move down
+                    elif event.keysym == "Left" and col > 0:
+                        self.entries[row][col - 1].focus_set()  # Move left
+                    elif event.keysym == "Right" and col < 8:
+                        self.entries[row][col + 1].focus_set()  # Move right
+                    return  # Exit after handling the event
+
+
+class Screen(Grid):
+
+    def __init__(self,board):
+        super().__init__(board)
+        self.display_grid()
+        self.check()
+        self.reset()
+        self.window.bind("<Key>", self.navigate_grid)
+    
+    def click_check(self):
+        for row in range(9):
+            for col in range(9):
+                value = self.entries[row][col].get().strip()
+                
+                if value == "":
+                    self.board[row][col] = 0
+                else:
+                    self.board[row][col] = int(value)
         
-
-
-# when button is clicked, update array with what is in the entries by iterating through dictionary
+        if not find_empty(self.board) and ValidGrid(self.board):
+            messagebox.showinfo("Congrats", "You have solved the puzzle")
+        else:
+            if ValidGrid(self.board):
+                messagebox.showinfo("Check", "Board is valid!")
+            else:
+                messagebox.showinfo("Check", "Board is invalid!")
+    
+    def click_reset(self):
+        self.board = [[0 for _ in range(9)] for _ in range(9)]
+        self.display_grid()
+    
+    def check(self):
+        check_b = tk.Button(self.window, text="Check", command=self.click_check, font=("Cambria", 100))
+        check_b.place(x=1050,y=450, width=820, height=160)
+    def reset(self):
+        reset_b = tk.Button(self.window, text="Reset", command=self.click_reset, font=("Cambria", 100))
+        reset_b.place(x=1050,y=630, width=820, height=160)    
+    
+if __name__ == "__main__":
+    board1 = [[6, 7, 2, "_","_","_","_","_", 9],
+          [1,"_", 5, 8, 4,"_","_","_", 7],
+          ["_", 8,"_","_", 2, 7,"_","_","_"],
+          ["_","_","_", 3, 7, 2, 4, 9,"_"],
+          [3, 9,"_","_","_","_","_","_","_"],
+          [7,"_","_","_","_", 8,"_", 1, 5],
+          [8, 5, 7,"_", 1,"_","_","_",""],
+          ["_","","_","_", 9, 5, 6, 8,"_"],
+          [5,"_", 1, 4,"_", 3, 5,"_","_"]]  # Initialize a 9x9 board with zeros
+    app = Screen(board1)  # Create the Screen instance with the board
+    app.window.mainloop()  # Start the Tkinter main loop
