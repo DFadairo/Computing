@@ -21,7 +21,7 @@ def ValidGrid(board):
         temp = [0 for _ in range(9)]
         for col in range(9):
             # check if the value isn't 0, if it is go to the next value
-            if board[row][col] != 0:
+            if board[row][col] in range(1,10):
                 # if the position of the value in board in temp is 0 then change it to 1
                 if temp[board[row][col]] == 0:
                     temp[board[row][col]] = 1
@@ -37,7 +37,7 @@ def ValidGrid(board):
         temp = [0 for _ in range(9)]
         for row in range(9):
             # check if the value isn't 0, if it is go to the next value
-            if board[row][col] != 0:
+            if board[row][col] in range(1,10):
                 # if the position of the value in board in temp is 0 then change it to 1
                 if temp[board[row][col]] == 0:
                     temp[board[row][col]] = 1
@@ -57,7 +57,7 @@ def ValidGrid(board):
             for row in range(boxRow, boxRow + 3):
                 for col in range(boxCol, boxCol + 3):
                     # check if the value isn't 0, if it is go to the next value
-                    if board[row][col] != 0:
+                    if board[row][col] in range(1,10):
                         # if the position of the value in board in temp is 0 then change it to 1
                         if temp[board[row][col]] == 0:
                             temp[board[row][col]] = 1
