@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
-from coursework import *
+from board_func import *
+import time
 
 def validate_input(P):
     # Allow empty input or check if the input is an integer
-    if P == "" or (P.isdigit() and len(P) == 1):
+    if P == "" or (P.isdigit() and len(P) == 1) and P!=0:
         return True
     else:
         return False
@@ -88,50 +89,44 @@ class Screen(Grid):
         # inherit methods from the grid class
         super().__init__(board)
         self.display_grid()
-        self.check()
         self.reset()
         self.solve()
         self.hint()
         self.generate()
         self.window.bind("<Key>", self.navigate_grid)
+        self.timer()
+        self.time_display = ""
     
-    def click_check(self):
-        for row in range(9):
-            for col in range(9):
-                # get value from each entry in the dictionary
-                value = self.entries[row][col].get().strip()
-                
-                if value == "":
-                    # if the value isn't a number then the corresponding position in the array will be set to 0
-                    self.board[row][col] = 0
-                else:
-                    # if the board is a number that value will be set in the array
-                    self.board[row][col] = int(value)
-        
-        #prints a message depending on what state the board is in
-        if not find_empty(self.board) and ValidGrid(self.board):
-            messagebox.showinfo("Congrats", "You have solved the puzzle")
-        else:
-            if ValidGrid(self.board):
-                messagebox.showinfo("Check", "Board is valid!")
-            else:
-                messagebox.showinfo("Check", "Board is invalid!")
+    
     def click_reset(self):
         # clears the array then displays it
         self.board = [[0 for _ in range(9)] for _ in range(9)]
         self.display_grid()
     def click_solve(self):
+        counter = 0
         for row in range(9):
             for col in range(9):
                 value = self.entries[row][col].get().strip()
-                
                 if value == "":
-                    self.board[row][col] = 0
+                    col+=1
                 else:
-                    self.board[row][col] = int(value)
+                    counter+=1
+        if counter!=0:
+            for row in range(9):
+                for col in range(9):
+                    value = self.entries[row][col].get().strip()
+                    
+                    if value == "":
+                        self.board[row][col] = 0
+                    else:
+                        self.board[row][col] = int(value)
+            
+                    backtracking(self.board)
+                    self.display_grid()
+        else:
+            messagebox.showinfo("Erorr", "Please input a number!")
+
         
-        backtracking(self.board)
-        self.display_grid()
     def click_generate(self):
         answer = messagebox.askyesno("Difficulty", "Please Choose a Difficulty, yes for easy, no for hard")
         self.board = [[0 for _ in range(9)] for _ in range(9)]
@@ -142,25 +137,44 @@ class Screen(Grid):
         self.display_grid()
 
 
-    
-    def check(self):
-        check_b = tk.Button(self.window, text="Check", command=self.click_check, font=("Cambria", 100))
-        check_b.place(x=1050,y=450, width=820, height=160)
     def reset(self):
         reset_b = tk.Button(self.window, text="Reset", command=self.click_reset, font=("Cambria", 100))
         reset_b.place(x=1050,y=630, width=820, height=160)    
     def solve(self):
         solve_b = tk.Button(self.window, text="Solve", command=self.click_solve, font=("Cambria", 100))
-        solve_b.place(x=1050,y=90, width=820, height=160)
+        solve_b.place(x=1050,y=270, width=820, height=160)
     def hint(self):
         hint_b = tk.Button(self.window, text="Hint", command=self.click_hint, font=("Cambria", 100))
-        hint_b.place(x=1050,y=270, width=820, height=160)
+        hint_b.place(x=1050,y=450, width=820, height=160)
     def generate(self):
         generate_b = tk.Button(self.window, text="Generate", command=self.click_generate, font=("Cambria", 100))
         generate_b.place(x=1050,y=810, width=820, height=160)
+
+    
+    def update_time(self):
+        start_time = time.time()
+        elapsed_time = time.time() - start_time
+        sec = int(elapsed_time)%60
+        min = int(elapsed_time)//60
+        time_display = f"{min:02d}:{sec:02d}"
+    def timer(self):
+        start_time = time.time()
+        elapsed_time = time.time() - start_time
+        sec = int(elapsed_time)%60
+        min = int(elapsed_time)//60
+        time_display = f"{min:02d}:{sec:02d}"
+        timer_label = tk.Label(self.window, text=time_display, font=("Helvetica", 100))
+        time.sleep(1)
+        timer_label.place(x=1050,y=60)
 
     
 if __name__ == "__main__":
     board1 = [[0 for _ in range(9)] for _ in range(9)]  # Initialize a 9x9 board with zeros
     app = Screen(board1)  # Create the Screen instance with the board
     app.window.mainloop()  # Start the Tkinter main loop
+
+
+
+    #change it to inter
+    # use mod for minutes
+    # use remainder for seconds
