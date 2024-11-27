@@ -5,7 +5,7 @@ import time
 
 def validate_input(P):
     # Allow empty input or check if the input is an integer
-    if P == "" or (P.isdigit() and len(P) == 1) and P!=0:
+    if P == "" or (P.isdigit() and 1 <= int(P) <= 9):
         return True
     else:
         return False
@@ -57,6 +57,7 @@ class Grid:
                 
                 # placing each entry into a cell in the grid
                 entry.place(x=x_pos,y=y_pos, width=90,height=90)
+                entry.bind("<KeyRelease>", self.on_key_release)
                 
                 # any numbers in the board between 1-9 will be displayed in the entry
                 if self.board[row][col] in range(1,10):
@@ -96,6 +97,8 @@ class Screen(Grid):
         self.window.bind("<Key>", self.navigate_grid)
         self.timer()
         self.time_display = ""
+        self.undo()
+        self.on_key_release
     
     
     def click_reset(self):
@@ -150,22 +153,38 @@ class Screen(Grid):
         generate_b = tk.Button(self.window, text="Generate", command=self.click_generate, font=("Cambria", 100))
         generate_b.place(x=1050,y=810, width=820, height=160)
 
-    
-    def update_time(self):
-        start_time = time.time()
-        elapsed_time = time.time() - start_time
-        sec = int(elapsed_time)%60
-        min = int(elapsed_time)//60
-        time_display = f"{min:02d}:{sec:02d}"
+
     def timer(self):
         start_time = time.time()
-        elapsed_time = time.time() - start_time
-        sec = int(elapsed_time)%60
-        min = int(elapsed_time)//60
-        time_display = f"{min:02d}:{sec:02d}"
-        timer_label = tk.Label(self.window, text=time_display, font=("Helvetica", 100))
-        time.sleep(1)
-        timer_label.place(x=1050,y=60)
+
+        def update_timer():
+            elapsed_time = time.time() - start_time
+            sec = int(elapsed_time) % 60
+            min = int(elapsed_time) // 60
+            time_display = f"{min:02d}:{sec:02d}"
+            timer_label.config(text=time_display)
+            self.window.after(1000, update_timer)  # Update every second
+
+        timer_label = tk.Label(self.window, text="", font=("Helvetica", 100))
+        timer_label.place(x=1050, y=60)
+        update_timer()
+
+    def undo(self):
+        undo_b = tk.Button(self.window, text="Undo", font=("Cambria", 100))
+        undo_b.place(x=1050,y=810, width=820, height=160)
+
+    def on_key_release(self):
+        for row in range(9):
+            for col in range(9):
+                value = self.entries[row][col].get().strip()
+                self.board[row][col] = value
+        print(self.board)
+
+        
+
+        
+        
+
 
     
 if __name__ == "__main__":
