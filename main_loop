@@ -3,6 +3,7 @@ from tkinter import messagebox
 from board_func import *
 import time
 
+
 def validate_input(P):
     # Allow empty input or check if the input is an integer
     if P == "" or (P.isdigit() and 1 <= int(P) <= 9):
@@ -10,9 +11,31 @@ def validate_input(P):
     else:
         return False
 
-class Grid:
-    def __init__(self,board):
-        self.board = board
+class Stack:
+    def __init__(self): 
+        self.__data = [0 for n in range(81)] 
+        self.__top = -1 
+
+    def push(self,value): 
+        if self.__top < len(self.__data): 
+            self.__top += 1 
+            self.__data[self.__top] = value 
+        else: 
+            print("Stack is full") 
+
+    def pop(self): 
+        if self.__top > -1: 
+            self.__top -=1 
+            return(self.__data[self.__top+1]) 
+        else:
+            print("Stack is empty") 
+
+    def getStack(self): 
+        return self.__data 
+
+class Grid():
+    def __init__(self):
+        self.board = [[0 for _ in range(9)] for _ in range(9)]
         self.window = tk.Tk()
         self.window.title("David's Sudoku")
         self.window.geometry("1000x900")
@@ -82,13 +105,26 @@ class Grid:
                     elif event.keysym == "Right" and col < 8:
                         self.entries[row][col + 1].focus_set()  # Move right
                     return  # Exit after handling the event
+    
+    def on_key_release(self,event):
+        if event.char.isdigit() and (1 <= int(event.char) <= 9):
+            for row in range(9):
+                for col in range(9):
+                    value = self.entries[row][col].get().strip()
+                    self.board[row][col] = value
+                    if value.isdigit() and value != 0:
+                        self.s1.push((value,row,col))
+                    elif value == None:
+                        self.s1.push((0,row,col))
+            for row in self.board:
+                print(row)
 
 
-class Screen(Grid):
+class Screen(Grid,Stack):
 
-    def __init__(self,board):
+    def __init__(self):
         # inherit methods from the grid class
-        super().__init__(board)
+        super().__init__()
         self.display_grid()
         self.reset()
         self.solve()
@@ -99,6 +135,8 @@ class Screen(Grid):
         self.time_display = ""
         self.undo()
         self.on_key_release
+        self.s1 = Stack()
+        
     
     
     def click_reset(self):
@@ -169,16 +207,15 @@ class Screen(Grid):
         timer_label.place(x=1050, y=60)
         update_timer()
 
+    def click_undo(self):
+        self.board[self.s1.pop[1]][self.s1.pop[2]] = self.s1.pop[0]
+        self.display_grid()
     def undo(self):
-        undo_b = tk.Button(self.window, text="Undo", font=("Cambria", 100))
-        undo_b.place(x=1050,y=810, width=820, height=160)
+        undo_b = tk.Button(self.window, text="Undo", command=self.click_undo, font=("Cambria", 100))
+        undo_b.place(x=1450,y=60, width=410, height=160)
 
-    def on_key_release(self):
-        for row in range(9):
-            for col in range(9):
-                value = self.entries[row][col].get().strip()
-                self.board[row][col] = value
-        print(self.board)
+
+        
 
         
 
@@ -188,8 +225,7 @@ class Screen(Grid):
 
     
 if __name__ == "__main__":
-    board1 = [[0 for _ in range(9)] for _ in range(9)]  # Initialize a 9x9 board with zeros
-    app = Screen(board1)  # Create the Screen instance with the board
+    app = Screen()  # Create the Screen instance with the board
     app.window.mainloop()  # Start the Tkinter main loop
 
 
