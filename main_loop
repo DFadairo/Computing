@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from board_func import *
+from coursework import *
 import time
 
 
@@ -13,25 +13,33 @@ def validate_input(P):
 
 class Stack:
     def __init__(self): 
-        self.__data = [0 for n in range(81)] 
-        self.__top = -1 
+        self.__data = [0 for n in range(100)]
+        self.__top = 0 
 
     def push(self,value): 
-        if self.__top < len(self.__data): 
-            self.__top += 1 
+        # if the stack is not full then add to the top of it
+        if self.__top < len(self.__data):
             self.__data[self.__top] = value 
+            self.__top += 1 
         else: 
-            print("Stack is full") 
+            return None
 
     def pop(self): 
+        # if the stack is not empty return the value stored at the top of it
         if self.__top > -1: 
             self.__top -=1 
-            return(self.__data[self.__top+1]) 
+            return(self.__data[self.__top]) 
         else:
-            print("Stack is empty") 
+            return None
 
     def getStack(self): 
         return self.__data 
+    
+    def setTop(self,top):
+        self.__top = top
+
+    
+
 
 class Grid():
     def __init__(self):
@@ -72,7 +80,7 @@ class Grid():
             # creating a 2d dictionary by creating a dictionary in the self.entries dictionary for every row in the array
             self.entries[row] = {}
             for col in range(9):
-                # creating the entry that will allow input asn setting the font ty[em size and positiong]
+                # creating the entry that will allow input asn setting the font size and positiong
                 entry = tk.Entry(self.window, font=("Arial Rounded MT Bold", 50), justify="center", validate="key", validatecommand=(validate_cmd, '%P'))
 
                 x_pos = 55+(col*100)
@@ -107,17 +115,28 @@ class Grid():
                     return  # Exit after handling the event
     
     def on_key_release(self,event):
+        # check if a number is inputted into the board
         if event.char.isdigit() and (1 <= int(event.char) <= 9):
+            # create a exact copy of the board
+            board_copy = [row[:] for row in self.board]
             for row in range(9):
                 for col in range(9):
-                    value = self.entries[row][col].get().strip()
-                    self.board[row][col] = value
-                    if value.isdigit() and value != 0:
-                        self.s1.push((value,row,col))
-                    elif value == None:
-                        self.s1.push((0,row,col))
-            for row in self.board:
-                print(row)
+                    # if value is a number try changing it from string to int
+                    try:
+                        value = int(self.entries[row][col].get().strip())
+                        self.board[row][col] = value
+                    # if it is not a number and cannot be changed to int, then place the empty space in the board
+                    except:
+                        value = self.entries[row][col].get().strip()
+                        self.board[row][col] = value
+
+            for x in range(9):
+                for y in range(9):
+                    # check if there is a new number added to the board
+                    if board_copy[x][y] != self.board[x][y] and isinstance(self.board[x][y],int):
+                        # add the old value, row and col to the stack
+                        self.s1.push((board_copy[x][y],x,y)) 
+
 
 
 class Screen(Grid,Stack):
@@ -126,16 +145,12 @@ class Screen(Grid,Stack):
         # inherit methods from the grid class
         super().__init__()
         self.display_grid()
-        self.reset()
-        self.solve()
-        self.hint()
-        self.generate()
         self.window.bind("<Key>", self.navigate_grid)
         self.timer()
         self.time_display = ""
-        self.undo()
         self.on_key_release
         self.s1 = Stack()
+        self.buttons()
         
     
     
@@ -146,30 +161,31 @@ class Screen(Grid,Stack):
     def click_solve(self):
         counter = 0
         for row in range(9):
-            for col in range(9):
-                value = self.entries[row][col].get().strip()
-                if value == "":
-                    col+=1
-                else:
-                    counter+=1
-        if counter!=0:
-            for row in range(9):
                 for col in range(9):
+                    # obtain every value in the board 
                     value = self.entries[row][col].get().strip()
-                    
-                    if value == "":
-                        self.board[row][col] = 0
+                    # if the cell is empty add to the counter
+                    if isinstance(value,int):
+                        None
                     else:
-                        self.board[row][col] = int(value)
-            
-                    backtracking(self.board)
-                    self.display_grid()
+                        counter+=1
+                    # set the values to the array
+                    self.board[row][col] = value
+
+        # if the board is empty, display an error message
+        if counter >= 81:
+            error = messagebox.showinfo("Error","Please input a number!")
         else:
-            messagebox.showinfo("Erorr", "Please input a number!")
+            # if not, solve the board
+            backtracking(self.board)
+            self.display_grid()
+                    
 
         
     def click_generate(self):
+        # ask the user which difficulty they wish to choose
         answer = messagebox.askyesno("Difficulty", "Please Choose a Difficulty, yes for easy, no for hard")
+        # reset the board, generate a new one, then display it
         self.board = [[0 for _ in range(9)] for _ in range(9)]
         generate(self.board,answer)
         self.display_grid()
@@ -177,19 +193,22 @@ class Screen(Grid,Stack):
         hint(self.board)
         self.display_grid()
 
-
-    def reset(self):
+    def buttons(self):
         reset_b = tk.Button(self.window, text="Reset", command=self.click_reset, font=("Cambria", 100))
-        reset_b.place(x=1050,y=630, width=820, height=160)    
-    def solve(self):
+        reset_b.place(x=1050,y=630, width=820, height=160) 
+
         solve_b = tk.Button(self.window, text="Solve", command=self.click_solve, font=("Cambria", 100))
         solve_b.place(x=1050,y=270, width=820, height=160)
-    def hint(self):
+
         hint_b = tk.Button(self.window, text="Hint", command=self.click_hint, font=("Cambria", 100))
         hint_b.place(x=1050,y=450, width=820, height=160)
-    def generate(self):
+
         generate_b = tk.Button(self.window, text="Generate", command=self.click_generate, font=("Cambria", 100))
         generate_b.place(x=1050,y=810, width=820, height=160)
+
+        undo_b = tk.Button(self.window, text="Undo", command=self.click_undo, font=("Cambria", 100))
+        undo_b.place(x=1450,y=60, width=410, height=160)
+
 
 
     def timer(self):
@@ -208,11 +227,16 @@ class Screen(Grid,Stack):
         update_timer()
 
     def click_undo(self):
-        self.board[self.s1.pop[1]][self.s1.pop[2]] = self.s1.pop[0]
-        self.display_grid()
-    def undo(self):
-        undo_b = tk.Button(self.window, text="Undo", command=self.click_undo, font=("Cambria", 100))
-        undo_b.place(x=1450,y=60, width=410, height=160)
+        # pop the top of the stack containg the old value and its positiong
+        value = self.s1.pop()
+        # if the stack is not empty the revert the cell
+        if value != None:
+            self.board[value[1]][value[2]] = value[0]
+            self.display_grid() 
+        # if the stack is empty then display an error message
+        else:
+            messagebox.showinfo("Erorr","You have no more undos left!")
+
 
 
         
