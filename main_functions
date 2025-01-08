@@ -33,6 +33,14 @@ import random as r
 
 grid = [[0 for _ in range(9)] for _ in range(9)]  # main game grid
 # each array is a box
+def isValidDigit(value):
+    try:
+        if value >=1 and value <=9:
+            return True
+    except:
+        if not isinstance(value,int):
+            return False
+    return False
 
 def ValidGrid(board):
 
@@ -102,6 +110,11 @@ def find_empty(board):
 
 def backtracking(board):
 
+    empty_cells = [(row, col) for row in range(9) for col in range(9) if not isValidDigit(board[row][col])]
+    if len(empty_cells) == 81:
+        return False
+
+
     # Find empty cell
     empty = find_empty(board)
     
@@ -130,26 +143,27 @@ def backtracking(board):
 
 
 def hint(board):
-    # find random empty cell
-    empty = r.randint(0,81)
-    row = empty//9
-    col = empty%9
-    print(row,col)
+    # Find all empty cells
+    empty_cells = [(row, col) for row in range(9) for col in range(9) if not isValidDigit(board[row][col])]
 
-    while isinstance(board[row][col],int):
-        empty = r.randint(0,81)
-        row = empty//9
-        col = empty%9
-        print(row,col)
+    # If no empty cells, return (no hint possible)
+    if not empty_cells:
+        return None
+    
+    # Select a random empty cell
+    row, col = r.choice(empty_cells)
 
-    # create a copy of the board
+    # Create a copy of the board
     board_copy = [row[:] for row in board]
 
-    # solve the copy of the board
-    backtracking(board_copy)
+    # Solve the copied board
+    if not backtracking(board_copy):  # Assuming backtracking() returns True if successful
+        return False
 
-    # place one number into the original board
+    # Place one number into the original board
     board[row][col] = board_copy[row][col]
+    return (True,row,col)
+
 
 
 def generate(board,difficulty):
@@ -169,15 +183,20 @@ def generate(board,difficulty):
     else:
         k = r.randint(40,50)
 
+    #repeat this process depending on difficulty
     for i in range(k):
+        # choose a random row
         r_row = r.choice(board)
 
+        # iterate over the 2d array
         for row in range(9):
+            # find where row in board and r_row are the same
             if r_row == board[row]:
                 pos_row = row
             else:
                 row+=1
 
+        # pick one cell from the row was the column value
         r_col = r.choice(r_row)
         while r_col not in range(1,10):
             r_col = r.choice(r_row)
@@ -190,9 +209,4 @@ def generate(board,difficulty):
 
         board[pos_row][pos_col] = 0
 
-for row in board1:
-    print(row)
-print("")
-hint(board1)
-for row in board1:
-    print(row)
+
