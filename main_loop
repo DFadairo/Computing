@@ -49,7 +49,7 @@ class Grid():
         self.window.geometry("1000x900")
         self.entries = {}
         self.colour = "black"
-        self.pos = (0,0,0)
+        self.pos = (None,None,"black")
 
     def display_grid(self):
         # creating a canvas to draw the grid onto
@@ -82,15 +82,10 @@ class Grid():
             # creating a 2d dictionary by creating a dictionary in the self.entries dictionary for every row in the array
             self.entries[row] = {}
             for col in range(9):
-                try:
-                    if self.pos[0] == row and self.pos[1] == col:
-                        self.colour = self.pos[2]
-                    else:
-                        self.colour = "black"
-                except:
-                    self.colour = "black"
                 # creating the entry that will allow input asn setting the font size and positiong
                 entry = tk.Entry(self.window, fg=self.colour, font=("Arial Rounded MT Bold", 50), justify="center", validate="key", validatecommand=(validate_cmd, '%P'))
+                if self.pos[0] == row and self.pos[1] == col:
+                    entry.config(fg=self.pos[2])
 
                 x_pos = 55+(col*100)
                 y_pos = 55+(row*100)
@@ -104,6 +99,7 @@ class Grid():
                     entry.insert(0,self.board[row][col])
                 self.entries[row][col] = entry
                 print(row,col,entry)
+                self.colour = "black"
 
     def navigate_grid(self, event):
         # get the currently selected entry
@@ -126,7 +122,7 @@ class Grid():
     
     def on_key_release(self,event):
         # check if a number is inputted into the board
-        if event.char.isdigit() and (1 <= int(event.char) <= 9):
+        if event.char.isdigit() and (1 <= int(event.char) <= 9) or event.keysym == "Backspace":  #undo backspace
             # create a exact copy of the board
             board_copy = [row[:] for row in self.board]
             for row in range(9):
@@ -187,14 +183,19 @@ class Screen(Grid,Stack):
         generate(self.board,answer)
         self.display_grid()
     def click_hint(self):
+        # set the value that is return in the variable
         value = hint(self.board)
         if value:
+            # pop the value into the stack so it can undid
+            # change the hint that is displayed to the color blue
             self.pos = value[1],value[2],"blue"
-            self.colour = "blue"
+            # display the board
             self.display_grid()
         elif not value:
+            # if the board cannot be sovled, display an error
             messagebox.showinfo("Error"," Failed to solve the board.")
         elif value == None:
+            # if the board is empty, display an error
             messagebox.showinfo("Error", "No empty cells available.")
 
     def buttons(self):
