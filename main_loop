@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from board_func import *
 import time
+import pickle
 
 
 def validate_input(P):
@@ -50,6 +51,19 @@ class Grid():
         self.entries = {}
         self.colour = "black"
         self.pos = (None,None,"black")
+
+    def save(self):
+        
+        with open("board.pkl","wb") as file:
+            pickle.dump(self.board,file)
+
+    def on_closing(self):
+        if messagebox.askyesno("Exit","Do you want to save before exiting"):
+            with open("board.pkl","wb") as file:
+                pickle.dump(self.board,file)
+            self.window.destroy()
+        else:
+            self.window.destroy()
 
     def display_grid(self):
         # creating a canvas to draw the grid onto
@@ -141,7 +155,11 @@ class Grid():
                     # check if there is a new number added to the board
                     if board_copy[x][y] != self.board[x][y] and isinstance(self.board[x][y],int):
                         # add the old value, row and col to the stack
-                        self.s1.push((board_copy[x][y],x,y)) 
+                        self.s1.push((board_copy[x][y],x,y))
+                        
+                        if not ValidGrid(self.board):
+                            self.pos = x,y,"red"
+                            self.display_grid()
 
 
 
@@ -171,6 +189,7 @@ class Screen(Grid,Stack):
             
         else:
             # if not, solve the board
+            self.colour = "green"
             self.display_grid()
                     
 
@@ -242,8 +261,6 @@ class Screen(Grid,Stack):
         else:
             messagebox.showinfo("Erorr","You have no more undos left!")
 
-
-
         
 
         
@@ -254,7 +271,8 @@ class Screen(Grid,Stack):
 
     
 if __name__ == "__main__":
-    app = Screen()  # Create the Screen instance with the board
+    app = Screen()
+    app.window.protocol("WM_DELETE_WINDOW", on_closing)  # Create the Screen instance with the board
     app.window.mainloop()  # Start the Tkinter main loop
 
 
