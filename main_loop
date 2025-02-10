@@ -1,214 +1,324 @@
-test_G = [
-    [4, 9, 5, 0, 7, 0, 3, 0, 8],
-    [7, 0, 0, 0, 8, 3, 0, 9, 2],
-    [3, 0, 0, 1, 9, 0, 0, 0, 7],
-    [0, 0, 4, 2, 1, 0, 0, 3, 0],
-    [0, 0, 6, 3, 0, 0, 1, 2, 9],
-    [2, 0, 3, 8, 0, 9, 0, 0, 0],
-    [1, 4, 9, 0, 0, 6, 0, 0, 0],
-    [0, 5, 0, 4, 0, 0, 0, 6, 0],
-    [0, 0, 0, 0, 0, 8, 7, 4, 0]]
-
-board1 = [[6, 7, 2, "_","_","_","_","_", 9],
-          [1,"_", 5, 8, 4,"_","_","_", 7],
-          ["_", 8,"_","_", 2, 7,"_","_","_"],
-          ["_","_","_", 3, 7, 2, 4, 9,"_"],
-          [3, 9,"_","_","_","_","_","_","_"],
-          [7,"_","_","_","_", 8,"_", 1, 5],
-          [8, 5, 7,"_", 1,"_","_","_",""],
-          ["_","","_","_", 9, 5, 6, 8,"_"],
-          ["_","_", 1, 4,"_", 3, 5,"_","_"]] 
-
-board2 = [[0, 7, 2, "_","_","_","_","_", 9],
-          [1,"_", 5, 8, 4,"_","_","_", 7],
-          ["_", 8,"_","_", 2, 7,"_","_","_"],
-          ["_","_","_", 0, 7, 2, 4, 9,"_"],
-          [3, 9,"_","_","_","_","_","_","_"],
-          [7,"_","_","_","_", 8,"_", 1, 5],
-          [8, 5, 7,"_", 1,"_","_","_",""],
-          ["_","","_","_", 9, 5, 6, 8,"_"],
-          ["_","_", 1, 0,"_", 3, 5,"_","_"]] 
-
-import random as r
-
-grid = [[0 for _ in range(9)] for _ in range(9)]  # main game grid
-# each array is a box
-def isValidDigit(value):
-    try:
-        if value >=1 and value <=9:
-            return True
-    except:
-        if not isinstance(value,int):
-            return False
-    return False
-
-def ValidGrid(board):
-
-    # iterate over the 2D array using variables row and col
-    for row in range(9):
-        # create temporary array to store 1s and 0s
-        temp = [0 for _ in range(10)]
-        for col in range(9):
-            # if the value isn't 0, if it is go to the next value
-            if board[row][col] in range(1,10):
-                # if the position of the value in board in temp is 0 then change it to 1
-                if temp[board[row][col]] == 0:
-                    temp[board[row][col]] = 1
-                # if it isn't 0, then the value has already been seen
-                else:
-                    return False
-            else:
-                col+=1
-    
-    # iterate over the 2D array using variables col and row switched around so that it can iterate downards through the columns
-    for col in range(9):
-        # create temporary array
-        temp = [0 for _ in range(10)]
-        for row in range(9):
-            # if the value isn't 0, if it is go to the next value
-            if board[row][col] in range(1,10):
-                # if the position of the value in board in temp is 0 then change it to 1
-                if temp[board[row][col]] == 0:
-                    temp[board[row][col]] = 1
-                # if it isn't 0, then the value has already been seen
-                else:
-                    return False
-            else:
-                row+=1
-
-    # iterate over each 3x3 box using variables boxRow and boxCol to get the starting position
-    for boxRow in range(0, 9, 3):
-        for boxCol in range(0, 9, 3):
-            # create temporary array for 1s and 0s
-            temp = [0 for _ in range(10)]
-            
-            # iterate over each cell in the current 3x3 box
-            for row in range(boxRow, boxRow + 3):
-                for col in range(boxCol, boxCol + 3):
-                    # if the value isn't 0
-                    if board[row][col] in range(1,10):
-                        # if the position of the value in board in temp is 0 then change it to 1
-                        if temp[board[row][col]] == 0:
-                            temp[board[row][col]] = 1
-                        # if it isn't 0, then the value has already been seen
-                        else:
-                            return False
-                    else:
-                        col+=1
-
-    
-    return True
-
-def find_empty(board):
-    # find an empty cell in the board
-    for row in range(9):
-        for col in range(9):
-            if board[row][col] not in range(1,10):
-                return (row,col)   # returning the row and column that of an empty space
-    return False
+import tkinter as tk
+from tkinter import messagebox
+from board_func import *
+import time
+import pickle
 
 
-def backtracking(board):
-
-    empty_cells = [(row, col) for row in range(9) for col in range(9) if not isValidDigit(board[row][col])]
-    if len(empty_cells) == 81:
-        return False
-
-
-    # Find empty cell
-    empty = find_empty(board)
-    
-    # If no empty cell is found, the board is solved
-    if not empty:
+def validate_input(P):
+    # Allow empty input or check if the input is an integer
+    if P == "" or (P.isdigit() and 1 <= int(P) <= 9):
         return True
-    
-    row, col = empty
-    
-    # Try digits 1 to 9
-    for num in range(1, 10):
-        # Place the number
-        board[row][col] = num
-        
-        # Check if the board is still valid
-        if ValidGrid(board):
-            # Recursively try to solve the rest of the board
-            if backtracking(board):
-                return True
-        
-        # If placing the number didn't lead to a solution, backtrack by setting it to 0
-        board[row][col] = 0
-    
-    # If no number worked, return False to trigger backtracking
-    return False
-
-
-def hint(board):
-    # Find all empty cells
-    empty_cells = [(row, col) for row in range(9) for col in range(9) if not isValidDigit(board[row][col])]
-
-    # If no empty cells, return (no hint possible)
-    if not empty_cells:
-        return None
-    
-    # Select a random empty cell
-    row, col = r.choice(empty_cells)
-
-    # Create a copy of the board
-    board_copy = [row[:] for row in board]
-
-    # Solve the copied board
-    if not backtracking(board_copy):  # Assuming backtracking() returns True if successful
+    else:
         return False
 
-    # Place one number into the original board
-    board[row][col] = board_copy[row][col]
-    return (True,row,col)
+class Stack:
+    def __init__(self): 
+        self.__data = [0 for n in range(100)]
+        self.__top = 0 
 
+    def push(self,value): 
+        # if the stack is not full then add to the top of it
+        if self.__top < len(self.__data):
+            self.__data[self.__top] = value 
+            self.__top += 1 
+        else: 
+            return None
 
+    def pop(self): 
+        # if the stack is not empty return the value stored at the top of it
+        if self.__top > -1: 
+            self.__top -=1 
+            return(self.__data[self.__top]) 
+        else:
+            return None
 
-def generate(board,difficulty):
-    #pick a random number between 1 and 9 so that the generation is different everytime
-    for col in range(9):
-        board[0][col] = r.randint(1,9)
-    #keep on picking random numbers until the board is valid
-    while not ValidGrid(board):
-        for col in range(9):
-            board[0][col] = r.randint(1,9)
+    def getStack(self): 
+        return self.__data 
     
-    backtracking(board) #use the backtracking algorithm to complete the board
+    def setTop(self,top):
+        self.__top = top
 
-    #the amount of empty spaces depends fully on the difficulty
-    if difficulty:
-        k = r.randint(30,40)
-    else:
-        k = r.randint(40,50)
+    
 
-    #repeat this process depending on difficulty
-    for i in range(k):
-        # choose a random row
-        r_row = r.choice(board)
 
-        # iterate over the 2d array
+class Grid():
+    def __init__(self):
+        self.board = [[0 for _ in range(9)] for _ in range(9)]
+        self.window = tk.Tk()
+        self.window.title("David's Sudoku")
+        self.window.geometry("1000x900")
+        self.entries = {}
+        self.colour = "black"
+        self.pos = (None,None,"black",True)
+
+    def save(self):
+        
+        with open("board.pkl","wb") as file:
+            pickle.dump(self.board,file)
+
+
+    def display_grid(self):
+        # creating a canvas to draw the grid onto
+        my_canvas = tk.Canvas(self.window, width=1000, height=1000, bg="white")
+        my_canvas.place(x=0,y=0)
+        x=50
+        while x<=950:
+            # create the lines inside the boxes by adding 100 to the x-coordinate#
+            my_canvas.create_line(x, 50, x, 950, fill="black", width=3)          #
+            x+=100                                                               #
+        y=50                                                                     #
+        while y<=950:                                                            #
+            my_canvas.create_line(50, y, 950, y, fill="black", width=3)          #
+            y+=100                                                               #
+        # create the thicher lines around the boxes and whole grid
+        x=50                                                                   
+        while x<=950:
+            my_canvas.create_line(x, 50, x, 950, fill="black", width = 7)
+            x+=300
+        y=50
+        while y<=950:
+            my_canvas.create_line(50, y, 950, y, fill="black", width = 7)
+            y+=300
+        
+        # initialising a dictionary to store the entries in
+        self.entries = {}
+        validate_cmd = self.window.register(validate_input)
+
         for row in range(9):
-            # find where row in board and r_row are the same
-            if r_row == board[row]:
-                pos_row = row
+            # creating a 2d dictionary by creating a dictionary in the self.entries dictionary for every row in the array
+            self.entries[row] = {}
+            for col in range(9):
+                # creating the entry that will allow input asn setting the font size and positiong
+                entry = tk.Entry(self.window, fg=self.colour, font=("Arial Rounded MT Bold", 50), justify="center", validate="key", validatecommand=(validate_cmd, '%P'))
+                if self.pos[0] == row and self.pos[1] == col:
+                    entry.config(fg=self.pos[2])
+
+                x_pos = 55+(col*100)
+                y_pos = 55+(row*100)
+                
+                # placing each entry into a cell in the grid
+                entry.place(x=x_pos,y=y_pos, width=90,height=90)
+                entry.bind("<KeyRelease>", self.on_key_release)
+                
+                # any numbers in the board between 1-9 will be displayed in the entry
+                if self.board[row][col] in range(1,10):
+                    entry.insert(0,self.board[row][col])
+                self.entries[row][col] = entry
+                if self.pos[3]:
+                    self.colour = "black"
+
+    def navigate_grid(self, event):
+        # get the currently selected entry
+        current_entry = self.window.focus_get()
+
+        # find its position in the grid
+        for row in range(9):
+            for col in range(9):
+                if self.entries[row][col] == current_entry:
+                    # find new selected entry based on key pressed
+                    if event.keysym == "Up" and row > 0:
+                        self.entries[row - 1][col].focus_set()  # Move up
+                    elif event.keysym == "Down" and row < 8:
+                        self.entries[row + 1][col].focus_set()  # Move down
+                    elif event.keysym == "Left" and col > 0:
+                        self.entries[row][col - 1].focus_set()  # Move left
+                    elif event.keysym == "Right" and col < 8:
+                        self.entries[row][col + 1].focus_set()  # Move right
+                    return  # Exit after handling the event
+    
+    def on_key_release(self,event):
+
+        # check if a number is inputted into the board
+        if event.char.isdigit() and (1 <= int(event.char) <= 9) or event.keysym == "BackSpace":  #undo backspace
+            # create a exact copy of the board
+            board_copy = [row[:] for row in self.board]
+            for row in range(9):
+                for col in range(9):
+                    # if value is a number try changing it from string to int
+                    try:
+                        value = int(self.entries[row][col].get().strip())
+                        self.board[row][col] = value
+                    # if it is not a number and cannot be changed to int, then place the empty space in the board
+                    except:
+                        value = self.entries[row][col].get().strip()
+                        self.board[row][col] = value
+
+
+            for x in range(9):
+                for y in range(9):
+                    # check if there is a new number added to the board
+                    if board_copy[x][y] != self.board[x][y] and isinstance(self.board[x][y],int):
+                        # add the old value, row and col to the stack
+                        self.s1.push((board_copy[x][y],x,y))
+                        
+
+                        if not ValidGrid(self.board): 
+                            self.pos = x,y,"red"
+                            self.display_grid()
+                
+                        if ValidGrid(self.board) and not find_empty(self.board):
+                            self.colour = "green"
+                            self.pos = None, None, "black", False
+                            self.display_grid()
+                    
+                    elif event.keysym == "BackSpace" and board_copy[x][y] != self.board[x][y] and isinstance(board_copy[x][y],int):
+                        self.s1.push((board_copy[x][y],x,y))
+
+
+                    
+
+
+
+class Screen(Grid,Stack):
+
+    def __init__(self):
+        # inherit methods from the grid class
+        super().__init__()
+        self.display_grid()
+        self.window.bind("<Key>", self.navigate_grid)
+        self.timer()
+        self.time_display = ""
+        self.on_key_release
+        self.s1 = Stack()
+        self.buttons()
+        
+    
+    def on_closing(self):
+        if messagebox.askyesno("Exit","Do you want to save before exiting"):
+            with open("board.pkl","wb") as file:
+                pickle.dump(self.board,file)
+            self.window.destroy()
+        else:
+            self.window.destroy()
+
+    def click_reset(self):
+        # clears the array then displays it
+        self.board = [[0 for _ in range(9)] for _ in range(9)]
+        self.display_grid()
+    def click_solve(self):
+        # if the board is empty, display an error message
+        if not backtracking(self.board):
+            messagebox.showinfo("Error","Please input a number!")
+            
+        else:
+            # if not, solve the board
+            self.colour = "green"
+            self.pos = None, None, "green", False
+            self.display_grid()
+                    
+    def save_undo(self):
+        board_copy = [row[:] for row in self.board]
+        for row in range(9):
+            for col in range(9):
+                # if value is a number try changing it from string to int
+                try:
+                    value = int(self.entries[row][col].get().strip())
+                    self.board[row][col] = value
+                # if it is not a number and cannot be changed to int, then place the empty space in the board
+                except:
+                    value = self.entries[row][col].get().strip()
+                    self.board[row][col] = value
+
+        for x in range(9):
+            for y in range(9):
+                # check if there is a new number added to the board
+                if board_copy[x][y] != self.board[x][y] and isinstance(self.board[x][y],int):
+                    # add the old value, row and col to the stack
+                    self.s1.push((board_copy[x][y],x,y))
+                    
+                    if not ValidGrid(self.board):
+                        self.pos = x,y,"red"
+                        self.display_grid()
+        
+    def click_generate(self):
+        # ask the user which difficulty they wish to choose
+        answer = messagebox.askyesno("Difficulty", "Please Choose a Difficulty, yes for easy, no for hard")
+        # reset the board, generate a new one, then display it
+        self.board = [[0 for _ in range(9)] for _ in range(9)]
+        generate(self.board,answer)
+        self.display_grid()
+    def click_hint(self):
+        # set the value that is return in the variable
+        value = hint(self.board)
+        if value:
+            # pop the value into the stack so it can undid
+            # change the hint that is displayed to the color blue
+            self.pos = value[1],value[2],"blue",True
+            # display the board
+            self.display_grid()
+        elif not value:
+            # if the board cannot be sovled, display an error
+            messagebox.showinfo("Error"," Failed to solve the board.")
+        elif value == None:
+            # if the board is empty, display an error
+            messagebox.showinfo("Error", "No empty cells available.")
+
+    def buttons(self):
+        reset_b = tk.Button(self.window, text="Reset", command=self.click_reset, font=("Cambria", 100))
+        reset_b.place(x=1050,y=630, width=820, height=160) 
+
+        solve_b = tk.Button(self.window, text="Solve", command=self.click_solve, font=("Cambria", 100))
+        solve_b.place(x=1050,y=270, width=820, height=160)
+
+        hint_b = tk.Button(self.window, text="Hint", command=self.click_hint, font=("Cambria", 100))
+        hint_b.place(x=1050,y=450, width=820, height=160)
+
+        generate_b = tk.Button(self.window, text="Generate", command=self.click_generate, font=("Cambria", 100))
+        generate_b.place(x=1050,y=810, width=820, height=160)
+
+        undo_b = tk.Button(self.window, text="Undo", command=self.click_undo, font=("Cambria", 100))
+        undo_b.place(x=1450,y=60, width=410, height=160)
+
+
+
+    def timer(self):
+        start_time = time.time()
+
+        def update_timer():
+            elapsed_time = time.time() - start_time
+            sec = int(elapsed_time) % 60
+            min = int(elapsed_time) // 60
+            time_display = f"{min:02d}:{sec:02d}"
+            timer_label.config(text=time_display)
+            self.window.after(1000, update_timer)  # Update every second
+
+        timer_label = tk.Label(self.window, text="", font=("Helvetica", 100))
+        timer_label.place(x=1050, y=60)
+        update_timer()
+
+    def click_undo(self):
+        counter = 5
+        if counter > 0:
+            # pop the top of the stack containg the old value and its positiong
+            value = self.s1.pop()
+            # if the stack is not empty the revert the cell
+            if value != None:
+                self.board[value[1]][value[2]] = value[0]
+                self.display_grid() 
+            # if the stack is empty then display an error message
             else:
-                row+=1
+                messagebox.showinfo("Erorr","You have no more undos left!")
+            counter -=1
+        elif counter == 0:
+            messagebox.showinfo("Erorr","You have no more undos left!")
 
-        # pick one cell from the row was the column value
-        r_col = r.choice(r_row)
-        while r_col not in range(1,10):
-            r_col = r.choice(r_row)
+        
 
-        for i in range(9):
-            if r_row[i] == r_col:
-                pos_col = i
-            else:
-                i+=1
+        
 
-        board[pos_row][pos_col] = 0
+        
+        
 
 
+    
+if __name__ == "__main__":
+    app = Screen()
+  # Create the Screen instance with the board
+    app.window.mainloop()  # Start the Tkinter main loop
+
+
+
+    #change it to inter
     # use mod for minutes
     # use remainder for seconds
