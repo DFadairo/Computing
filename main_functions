@@ -32,14 +32,19 @@ board2 = [[0, 7, 2, "_","_","_","_","_", 9],
 import random as r
 
 grid = [[0 for _ in range(9)] for _ in range(9)]  # main game grid
-# each array is a box
+# each array is a row
+
 def isValidDigit(value):
+    # checks if the value is an integer between 1 and 9
     try:
         if value >=1 and value <=9:
+            #if it is return True
             return True
+    # if the value is not an integer, then return False
     except:
         if not isinstance(value,int):
             return False
+    # if the vale is not an integer between 1 and 9 return False
     return False
 
 def ValidGrid(board):
@@ -208,5 +213,4 @@ def generate(board,difficulty):
                 i+=1
 
         board[pos_row][pos_col] = 0
-
 
