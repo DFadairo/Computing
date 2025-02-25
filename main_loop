@@ -39,24 +39,21 @@ class Stack:
     def setTop(self,top):
         self.__top = top
 
-    
+# opens the file for the board that was saved on the previous game
+with open("board.pkl","rb") as file:
+    # saves that board in the saved_board variable
 
+    saved_board = pickle.load(file)
 
 class Grid():
     def __init__(self):
-        self.board = [[0 for _ in range(9)] for _ in range(9)]
+        self.board = saved_board
         self.window = tk.Tk()
         self.window.title("David's Sudoku")
         self.window.geometry("1000x900")
         self.entries = {}
         self.colour = "black"
-        self.pos = (None,None,"black",True)
-
-    def save(self):
-        
-        with open("board.pkl","wb") as file:
-            pickle.dump(self.board,file)
-
+        self.pos = None,None,"black",True
 
     def display_grid(self):
         # creating a canvas to draw the grid onto
@@ -71,7 +68,7 @@ class Grid():
         while y<=950:                                                            #
             my_canvas.create_line(50, y, 950, y, fill="black", width=3)          #
             y+=100                                                               #
-        # create the thicher lines around the boxes and whole grid
+        # create the thicker lines around the boxes and whole grid
         x=50                                                                   
         while x<=950:
             my_canvas.create_line(x, 50, x, 950, fill="black", width = 7)
@@ -105,8 +102,7 @@ class Grid():
                 if self.board[row][col] in range(1,10):
                     entry.insert(0,self.board[row][col])
                 self.entries[row][col] = entry
-                if self.pos[3]:
-                    self.colour = "black"
+
 
     def navigate_grid(self, event):
         # get the currently selected entry
@@ -152,18 +148,21 @@ class Grid():
                         # add the old value, row and col to the stack
                         self.s1.push((board_copy[x][y],x,y))
                         
-
+                        #if the grid is not valid, change the colour of that cell to red
                         if not ValidGrid(self.board): 
                             self.pos = x,y,"red"
                             self.display_grid()
-                
+
+                        # if the board is compelte, change the colour of the whole board to green
                         if ValidGrid(self.board) and not find_empty(self.board):
                             self.colour = "green"
                             self.pos = None, None, "black", False
                             self.display_grid()
                     
+                    # if the player deletes the values in a cell, push the old number and cell position into the stack so that it can be undone later
                     elif event.keysym == "BackSpace" and board_copy[x][y] != self.board[x][y] and isinstance(board_copy[x][y],int):
                         self.s1.push((board_copy[x][y],x,y))
+
 
 
                     
@@ -185,51 +184,54 @@ class Screen(Grid,Stack):
         
     
     def on_closing(self):
+        # returns True if the player says yes to saving
         if messagebox.askyesno("Exit","Do you want to save before exiting"):
+            # if True then the board array will be saved to a file
             with open("board.pkl","wb") as file:
                 pickle.dump(self.board,file)
+            # close the window
             self.window.destroy()
         else:
+            # if the player says no to saving then close the window
             self.window.destroy()
 
     def click_reset(self):
         # clears the array then displays it
         self.board = [[0 for _ in range(9)] for _ in range(9)]
+        self.pos = None,None,"black",True
         self.display_grid()
     def click_solve(self):
         # if the board is empty, display an error message
         if not backtracking(self.board):
             messagebox.showinfo("Error","Please input a number!")
-            
         else:
             # if not, solve the board
             self.colour = "green"
-            self.pos = None, None, "green", False
             self.display_grid()
                     
-    def save_undo(self):
-        board_copy = [row[:] for row in self.board]
-        for row in range(9):
-            for col in range(9):
+    #def save_undo(self):
+     #   board_copy = [row[:] for row in self.board]
+      #  for row in range(9):
+       #     for col in range(9):
                 # if value is a number try changing it from string to int
-                try:
-                    value = int(self.entries[row][col].get().strip())
-                    self.board[row][col] = value
+        #        try:
+         #           value = int(self.entries[row][col].get().strip())
+          #          self.board[row][col] = value
                 # if it is not a number and cannot be changed to int, then place the empty space in the board
-                except:
-                    value = self.entries[row][col].get().strip()
-                    self.board[row][col] = value
+           #     except:
+            #        value = self.entries[row][col].get().strip()
+             #       self.board[row][col] = value
 
-        for x in range(9):
-            for y in range(9):
+        #for x in range(9):
+         #   for y in range(9):
                 # check if there is a new number added to the board
-                if board_copy[x][y] != self.board[x][y] and isinstance(self.board[x][y],int):
+          #      if board_copy[x][y] != self.board[x][y] and isinstance(self.board[x][y],int):
                     # add the old value, row and col to the stack
-                    self.s1.push((board_copy[x][y],x,y))
+           #         self.s1.push((board_copy[x][y],x,y))
                     
-                    if not ValidGrid(self.board):
-                        self.pos = x,y,"red"
-                        self.display_grid()
+            #        if not ValidGrid(self.board):
+             #           self.pos = x,y,"red"
+              #          self.display_grid()
         
     def click_generate(self):
         # ask the user which difficulty they wish to choose
@@ -255,34 +257,51 @@ class Screen(Grid,Stack):
             messagebox.showinfo("Error", "No empty cells available.")
 
     def buttons(self):
+        # creates a reset button and place it
         reset_b = tk.Button(self.window, text="Reset", command=self.click_reset, font=("Cambria", 100))
-        reset_b.place(x=1050,y=630, width=820, height=160) 
+        reset_b.place(x=1050,y=810, width=400, height=160) 
 
+        # creates a solve button and places it
         solve_b = tk.Button(self.window, text="Solve", command=self.click_solve, font=("Cambria", 100))
         solve_b.place(x=1050,y=270, width=820, height=160)
 
+        # creates a hint button and places it
         hint_b = tk.Button(self.window, text="Hint", command=self.click_hint, font=("Cambria", 100))
         hint_b.place(x=1050,y=450, width=820, height=160)
 
+        # creates a generate button and places it
         generate_b = tk.Button(self.window, text="Generate", command=self.click_generate, font=("Cambria", 100))
-        generate_b.place(x=1050,y=810, width=820, height=160)
+        generate_b.place(x=1050,y=630, width=820, height=160)
 
+        # creates an undo button and places it
         undo_b = tk.Button(self.window, text="Undo", command=self.click_undo, font=("Cambria", 100))
         undo_b.place(x=1450,y=60, width=410, height=160)
+
+        # creates an exit button and places it
+        exit_b = tk.Button(self.window, text="Exit", command=self.on_closing, font=("Cambria",100))
+        exit_b.place(x=1470,y=810, width=400, height=160)
 
 
 
     def timer(self):
         start_time = time.time()
 
+        # inner function updates the timer every second
         def update_timer():
+            # elapsed time from creation of the window is the current time minus the start time
             elapsed_time = time.time() - start_time
+            # converts elapsed time into seconds and minutes
             sec = int(elapsed_time) % 60
             min = int(elapsed_time) // 60
-            time_display = f"{min:02d}:{sec:02d}"
-            timer_label.config(text=time_display)
-            self.window.after(1000, update_timer)  # Update every second
 
+            # create a variable to display the time in time format
+            time_display = f"{min:02d}:{sec:02d}"
+            # display the time
+            timer_label.config(text=time_display)
+            #updates every second
+            self.window.after(1000, update_timer)
+
+        # place the timer on the screen
         timer_label = tk.Label(self.window, text="", font=("Helvetica", 100))
         timer_label.place(x=1050, y=60)
         update_timer()
@@ -316,9 +335,3 @@ if __name__ == "__main__":
     app = Screen()
   # Create the Screen instance with the board
     app.window.mainloop()  # Start the Tkinter main loop
-
-
-
-    #change it to inter
-    # use mod for minutes
-    # use remainder for seconds
