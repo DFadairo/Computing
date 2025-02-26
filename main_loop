@@ -181,6 +181,8 @@ class Screen(Grid,Stack):
         self.on_key_release
         self.s1 = Stack()
         self.buttons()
+        self.hint_counter = 0
+        self.start_time = time.time()
         
     
     def on_closing(self):
@@ -200,38 +202,15 @@ class Screen(Grid,Stack):
         self.board = [[0 for _ in range(9)] for _ in range(9)]
         self.pos = None,None,"black",True
         self.display_grid()
+        self.start_time = time.time()
     def click_solve(self):
         # if the board is empty, display an error message
         if not backtracking(self.board):
-            messagebox.showinfo("Error","Please input a number!")
+            messagebox.showerror("Error","Please input a number!")
         else:
             # if not, solve the board
             self.colour = "green"
             self.display_grid()
-                    
-    #def save_undo(self):
-     #   board_copy = [row[:] for row in self.board]
-      #  for row in range(9):
-       #     for col in range(9):
-                # if value is a number try changing it from string to int
-        #        try:
-         #           value = int(self.entries[row][col].get().strip())
-          #          self.board[row][col] = value
-                # if it is not a number and cannot be changed to int, then place the empty space in the board
-           #     except:
-            #        value = self.entries[row][col].get().strip()
-             #       self.board[row][col] = value
-
-        #for x in range(9):
-         #   for y in range(9):
-                # check if there is a new number added to the board
-          #      if board_copy[x][y] != self.board[x][y] and isinstance(self.board[x][y],int):
-                    # add the old value, row and col to the stack
-           #         self.s1.push((board_copy[x][y],x,y))
-                    
-            #        if not ValidGrid(self.board):
-             #           self.pos = x,y,"red"
-              #          self.display_grid()
         
     def click_generate(self):
         # ask the user which difficulty they wish to choose
@@ -241,20 +220,27 @@ class Screen(Grid,Stack):
         generate(self.board,answer)
         self.display_grid()
     def click_hint(self):
-        # set the value that is return in the variable
-        value = hint(self.board)
-        if value:
-            # pop the value into the stack so it can undid
-            # change the hint that is displayed to the color blue
-            self.pos = value[1],value[2],"blue",True
-            # display the board
-            self.display_grid()
-        elif not value:
-            # if the board cannot be sovled, display an error
-            messagebox.showinfo("Error"," Failed to solve the board.")
-        elif value == None:
-            # if the board is empty, display an error
-            messagebox.showinfo("Error", "No empty cells available.")
+        # increment the counter each time the hint button is clicked
+        self.hint_counter +=1 
+        # once the hint button has been clicked 5 times, display an error message
+        if self.hint_counter > 5:
+            messagebox.showerror("Error","You have run out of hints")
+        else:
+            # set the value that is return in the variable
+            value = hint(self.board)
+            if value:
+                # pop the value into the stack so it can undid
+                # change the hint that is displayed to the color blue
+                self.pos = value[1],value[2],"blue",True
+                # display the board
+                self.display_grid()
+                messagebox.showwarning("Warning",("You have", (5 - self.hint_counter), " hints left!"))
+            elif not value:
+                # if the board cannot be sovled, display an error
+                messagebox.showerror("Error"," Failed to solve the board.")
+            elif value == None:
+                # if the board is empty, display an error
+                messagebox.showerror("Error", "No empty cells available.")
 
     def buttons(self):
         # creates a reset button and place it
@@ -284,12 +270,12 @@ class Screen(Grid,Stack):
 
 
     def timer(self):
-        start_time = time.time()
+        self.start_time = time.time()
 
         # inner function updates the timer every second
         def update_timer():
             # elapsed time from creation of the window is the current time minus the start time
-            elapsed_time = time.time() - start_time
+            elapsed_time = time.time() - self.start_time
             # converts elapsed time into seconds and minutes
             sec = int(elapsed_time) % 60
             min = int(elapsed_time) // 60
@@ -317,10 +303,10 @@ class Screen(Grid,Stack):
                 self.display_grid() 
             # if the stack is empty then display an error message
             else:
-                messagebox.showinfo("Erorr","You have no more undos left!")
+                messagebox.showerror("Erorr","You have no more undos left!")
             counter -=1
         elif counter == 0:
-            messagebox.showinfo("Erorr","You have no more undos left!")
+            messagebox.showerror("Erorr","You have no more undos left!")
 
         
 
